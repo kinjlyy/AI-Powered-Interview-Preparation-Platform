@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login / Sign Up - InterviewPrep</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-white text-slate-800">
+    <main class="flex items-center justify-center min-h-screen p-6">
+      <section class="reveal opacity-0 translate-y-4 transition-all duration-500 w-full max-w-md">
+        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl ring-1 ring-slate-200 p-6">
+          <div class="flex items-center justify-center gap-2 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-blue-600"><path d="M11.7 2.3a1 1 0 0 1 .6 0l8 3a1 1 0 0 1 .7.95V11a10 10 0 1 1-20 0V6.25a1 1 0 0 1 .7-.95l8-3Z"/></svg>
+            <h1 class="text-xl font-bold tracking-tight">InterviewPrep</h1>
+          </div>
+
+          <!-- Tabs -->
+          <div class="grid grid-cols-2 rounded-lg bg-slate-100 p-1 mb-4 text-sm">
+            <button id="tab-login" class="tab-btn rounded-md px-3 py-2 bg-white shadow text-slate-900 font-semibold">Login</button>
+            <button id="tab-signup" class="tab-btn rounded-md px-3 py-2 text-slate-600 hover:text-slate-900">Sign Up</button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="form-login" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium mb-1" for="login-email">Email</label>
+              <input id="login-email" type="email" required class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="login-password">Password</label>
+              <input id="login-password" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="••••••••" />
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <a href="#" class="text-blue-600 hover:underline">Forgot Password?</a>
+            </div>
+            <button type="submit" class="w-full inline-flex justify-center rounded-lg bg-blue-600 text-white px-4 py-2.5 hover:bg-blue-700 shadow hover:shadow-lg transform hover:scale-[1.01] transition">Login</button>
+            <button type="button" class="w-full inline-flex justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 hover:bg-slate-50 transition">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5" />
+              Continue with Google
+            </button>
+            <p class="text-center text-sm text-slate-500">Don’t have an account? <a href="#" id="swap-to-signup" class="text-blue-600 hover:underline">Sign Up</a></p>
+          </form>
+
+          <!-- Sign Up Form -->
+          <form id="form-signup" class="space-y-3 hidden">
+            <div>
+              <label class="block text-sm font-medium mb-1" for="signup-name">Name</label>
+              <input id="signup-name" type="text" required class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Your name" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="signup-email">Email</label>
+              <input id="signup-email" type="email" required class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="signup-password">Password</label>
+              <input id="signup-password" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="••••••••" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1" for="signup-confirm">Confirm Password</label>
+              <input id="signup-confirm" type="password" required class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="••••••••" />
+            </div>
+            <button type="submit" class="w-full inline-flex justify-center rounded-lg bg-blue-600 text-white px-4 py-2.5 hover:bg-blue-700 shadow hover:shadow-lg transform hover:scale-[1.01] transition">Sign Up</button>
+            <button type="button" class="w-full inline-flex justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 hover:bg-slate-50 transition">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5" />
+              Continue with Google
+            </button>
+            <p class="text-center text-sm text-slate-500">Already have an account? <a href="Dashboard.html" id="swap-to-login" class="text-blue-600 hover:underline">Login</a></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const section = document.querySelector('.reveal');
+        setTimeout(() => {
+          section.classList.remove('opacity-0');
+          section.classList.remove('translate-y-4');
+          section.classList.add('opacity-100');
+          section.classList.add('translate-y-0');
+        }, 50);
+
+        const tabLogin = document.getElementById('tab-login');
+        const tabSignup = document.getElementById('tab-signup');
+        const formLogin = document.getElementById('form-login');
+        const formSignup = document.getElementById('form-signup');
+        const toSignup = document.getElementById('swap-to-signup');
+        const toLogin = document.getElementById('swap-to-login');
+
+        function showLogin() {
+          formLogin.classList.remove('hidden');
+          formSignup.classList.add('hidden');
+          tabLogin.classList.add('bg-white','shadow','text-slate-900','font-semibold');
+          tabSignup.classList.remove('bg-white','shadow','text-slate-900','font-semibold');
+          tabSignup.classList.add('text-slate-600');
+        }
+
+        function showSignup() {
+          formSignup.classList.remove('hidden');
+          formLogin.classList.add('hidden');
+          tabSignup.classList.add('bg-white','shadow','text-slate-900','font-semibold');
+          tabLogin.classList.remove('bg-white','shadow','text-slate-900','font-semibold');
+          tabLogin.classList.add('text-slate-600');
+        }
+
+        tabLogin.addEventListener('click', showLogin);
+        tabSignup.addEventListener('click', showSignup);
+        if (toSignup) toSignup.addEventListener('click', (e) => { e.preventDefault(); showSignup(); });
+        if (toLogin) toLogin.addEventListener('click', (e) => { e.preventDefault(); showLogin(); });
+      });
+    </script>
+  </body>
+  </html>
+
+
