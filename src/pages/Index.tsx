@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Briefcase, Code, Mic, Video, User } from 'lucide-react';
+import { Building2, Briefcase, Code, Mic, Video, User, Search } from 'lucide-react';
 
 const companies = [
   { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
@@ -26,6 +27,15 @@ const roles = [
 export default function Index() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('companies');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredCompanies = companies.filter((company) =>
+    company.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleMockInterview = (companyId: string) => {
+    navigate(`/mock-interview?company=${companyId}`);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -40,6 +50,10 @@ export default function Index() {
               </span>
             </div>
             <div className="flex space-x-4">
+              <Button variant="ghost" onClick={() => navigate('/questions')}>
+                <Code className="mr-2 h-4 w-4" />
+                Questions
+              </Button>
               <Button variant="ghost" onClick={() => navigate('/practice')}>
                 <Code className="mr-2 h-4 w-4" />
                 Practice
@@ -85,39 +99,73 @@ export default function Index() {
           </TabsList>
 
           <TabsContent value="companies">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {companies.map((company) => (
+            <div className="mb-6 max-w-md mx-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search companies..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-12 text-base"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredCompanies.map((company) => (
                 <Card
                   key={company.id}
-                  className="hover:shadow-lg transition-all cursor-pointer hover:scale-105 border-2 hover:border-indigo-500"
-                  onClick={() => navigate(`/company/${company.id}`)}
+                  className="hover:shadow-lg transition-all border-2 hover:border-indigo-500"
                 >
-                  <CardHeader>
-                    <div className="flex items-center justify-center mb-4">
-                      <img 
-                        src={company.logo} 
-                        alt={`${company.name} logo`}
-                        className="h-16 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                      <span className="text-4xl hidden">
-                        {company.name.charAt(0)}
-                      </span>
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center">
+                        <img 
+                          src={company.logo} 
+                          alt={`${company.name} logo`}
+                          className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.classList.remove('hidden');
+                          }}
+                        />
+                        <span className="text-3xl font-bold text-indigo-600 hidden">
+                          {company.name.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-2xl font-semibold mb-1">{company.name}</h3>
+                        <p className="text-sm text-gray-500">Prepare for your interview</p>
+                      </div>
                     </div>
-                    <CardTitle className="text-2xl text-center">{company.name}</CardTitle>
-                    <CardDescription className="text-center">Click to view interview rounds</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full" variant="outline">
-                      Start Preparation
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        className="flex-1" 
+                        variant="outline"
+                        onClick={() => navigate(`/company/${company.id}`)}
+                      >
+                        Start Practicing
+                      </Button>
+                      <Button 
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-700" 
+                        onClick={() => handleMockInterview(company.id)}
+                      >
+                        <Video className="mr-2 h-4 w-4" />
+                        Mock Interview
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
+
+            {filteredCompanies.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No companies found matching "{searchQuery}"</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="roles">

@@ -8,9 +8,9 @@ import RolePreparation from './pages/RolePreparation';
 import Practice from './pages/Practice';
 import SvarPractice from './pages/SvarPractice';
 import MockInterview from './pages/MockInterview';
+import Questions from './pages/Questions';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
-import { Footer } from '@/components/Footer';
 
 const queryClient = new QueryClient();
 
@@ -19,21 +19,17 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>
-        <div className="flex flex-col min-h-screen">
-          <div className="flex-1">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/company/:companyId" element={<CompanyRounds />} />
-              <Route path="/role/:roleId" element={<RolePreparation />} />
-              <Route path="/practice" element={<Practice />} />
-              <Route path="/svar-practice" element={<SvarPractice />} />
-              <Route path="/mock-interview" element={<MockInterview />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-          <Footer />
-        </div>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/company/:companyId" element={<CompanyRounds />} />
+          <Route path="/role/:roleId" element={<RolePreparation />} />
+          <Route path="/practice" element={<Practice />} />
+          <Route path="/svar-practice" element={<SvarPractice />} />
+          <Route path="/mock-interview" element={<MockInterview />} />
+          <Route path="/questions" element={<Questions />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

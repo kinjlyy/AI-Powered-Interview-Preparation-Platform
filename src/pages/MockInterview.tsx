@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,8 +45,15 @@ const generalQuestions = {
   ],
 };
 
+const roundTimers = {
+  'Technical Round': 600, // 10 minutes
+  'Coding Round': 1800, // 30 minutes
+  'Behavioral Round': 300, // 5 minutes
+};
+
 export default function MockInterview() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [selectionMode, setSelectionMode] = useState<'company' | 'role' | 'general' | null>(null);
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -58,12 +65,38 @@ export default function MockInterview() {
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
   const [isRecording, setIsRecording] = useState(false);
   const [answer, setAnswer] = useState('');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const rounds = [
     { name: 'Technical Round', questions: generalQuestions.technical },
     { name: 'Coding Round', questions: generalQuestions.coding },
     { name: 'Behavioral Round', questions: generalQuestions.behavioral },
   ];
+
+  // Check for company parameter in URL
+  useEffect(() => {
+    const companyParam = searchParams.get('company');
+    if (companyParam) {
+      setSelectionMode('company');
+      setSelectedCompany(companyParam);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (interviewStarted && !isPaused) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            toast.info('Time is up for this round!');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [interviewStarted, isPaused]);
 
   const handleStartInterview = () => {
     if (selectionMode === 'company' && !selectedCompany) {
@@ -75,39 +108,30 @@ export default function MockInterview() {
       return;
     }
     setInterviewStarted(true);
-    startTimer();
+    setTimeLeft(roundTimers[rounds[0].name as keyof typeof roundTimers]);
     toast.success('Mock interview started! Good luck!');
-  };
-
-  const startTimer = () => {
-    const interval = setInterval(() => {
-      if (!isPaused) {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            toast.info('Time is up for this question!');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }
-    }, 1000);
   };
 
   const handleNextQuestion = () => {
     if (currentQuestion < rounds[currentRound].questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-      setTimeLeft(300);
       setAnswer('');
       setIsRecording(false);
       toast.info('Moving to next question');
     } else if (currentRound < rounds.length - 1) {
-      setCurrentRound(currentRound + 1);
-      setCurrentQuestion(0);
-      setTimeLeft(300);
-      setAnswer('');
-      setIsRecording(false);
-      toast.success(`${rounds[currentRound].name} completed! Moving to ${rounds[currentRound + 1].name}`);
+      // Transition to next round with animation
+      setIsTransitioning(true);
+      toast.success(`${rounds[currentRound].name} completed!`);
+      
+      setTimeout(() => {
+        setCurrentRound(currentRound + 1);
+        setCurrentQuestion(0);
+        setTimeLeft(roundTimers[rounds[currentRound + 1].name as keyof typeof roundTimers]);
+        setAnswer('');
+        setIsRecording(false);
+        setIsTransitioning(false);
+        toast.info(`Starting ${rounds[currentRound + 1].name}`);
+      }, 2000);
     } else {
       toast.success('Mock interview completed! Great job!');
       setInterviewStarted(false);
@@ -153,10 +177,35 @@ export default function MockInterview() {
   };
 
   const getTimeColor = () => {
-    if (timeLeft > 180) return 'text-green-600';
-    if (timeLeft > 60) return 'text-yellow-600';
+    const roundTime = roundTimers[rounds[currentRound].name as keyof typeof roundTimers];
+    const percentage = (timeLeft / roundTime) * 100;
+    if (percentage > 50) return 'text-green-600';
+    if (percentage > 25) return 'text-yellow-600';
     return 'text-red-600';
   };
+
+  if (isTransitioning) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center animate-in fade-in zoom-in duration-1000">
+          <div className="mb-8">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center animate-pulse">
+              <CheckCircle2 className="h-12 w-12 text-white" />
+            </div>
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              {rounds[currentRound].name} Completed!
+            </h2>
+            <p className="text-xl text-gray-600">
+              Preparing {rounds[currentRound + 1].name}...
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!interviewStarted) {
     return (
@@ -266,11 +315,11 @@ export default function MockInterview() {
               <ul className="space-y-2">
                 <li className="flex items-start">
                   <span className="text-indigo-600 mr-2">•</span>
-                  <span>3 rounds: Technical, Coding, and Behavioral</span>
+                  <span>3 rounds: Technical (10 min), Coding (30 min), and Behavioral (5 min)</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-indigo-600 mr-2">•</span>
-                  <span>5 minutes per question</span>
+                  <span>Timed rounds with appropriate duration for each type</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-indigo-600 mr-2">•</span>
@@ -282,7 +331,7 @@ export default function MockInterview() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-indigo-600 mr-2">•</span>
-                  <span>Skip questions if needed</span>
+                  <span>Smooth transitions between rounds with animations</span>
                 </li>
               </ul>
             </CardContent>
@@ -311,7 +360,9 @@ export default function MockInterview() {
               Exit Interview
             </Button>
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary">{rounds[currentRound].name}</Badge>
+              <Badge variant="secondary" className="text-base px-3 py-1">
+                {rounds[currentRound].name}
+              </Badge>
               <span className={`text-2xl font-mono font-bold ${getTimeColor()}`}>
                 {formatTime(timeLeft)}
               </span>
@@ -323,7 +374,7 @@ export default function MockInterview() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium">Progress</span>
+            <span className="text-sm font-medium">Round Progress</span>
             <span className="text-sm text-gray-600">
               Question {currentQuestion + 1} of {rounds[currentRound].questions.length}
             </span>
@@ -334,14 +385,14 @@ export default function MockInterview() {
           />
         </div>
 
-        <Card className="mb-6">
+        <Card className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
                 <CardTitle className="text-2xl mb-2">
                   Question {currentQuestion + 1}
                 </CardTitle>
-                <Badge>{rounds[currentRound].name}</Badge>
+                <Badge className="bg-indigo-100 text-indigo-800">{rounds[currentRound].name}</Badge>
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -435,7 +486,7 @@ export default function MockInterview() {
               </li>
               <li className="flex items-start">
                 <span className="text-green-600 mr-2">✓</span>
-                <span>Ask clarifying questions if needed</span>
+                <span>Watch the timer but don't rush your answers</span>
               </li>
             </ul>
           </CardContent>
@@ -444,3 +495,6 @@ export default function MockInterview() {
     </div>
   );
 }
+
+// Missing import
+import { CheckCircle2 } from 'lucide-react';

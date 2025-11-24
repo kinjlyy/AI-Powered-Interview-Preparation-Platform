@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ExternalLink } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface Skill {
@@ -15,13 +15,25 @@ interface Topic {
   items: string[];
 }
 
+interface Resource {
+  name: string;
+  url: string;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  logo: string;
+}
+
 interface Role {
   name: string;
   icon: string;
   description: string;
   skills: Skill[];
   topics: Topic[];
-  resources: string[];
+  resources: Resource[];
+  hiringCompanies: Company[];
 }
 
 const roleData: Record<string, Role> = {
@@ -66,10 +78,16 @@ const roleData: Record<string, Role> = {
       },
     ],
     resources: [
-      'MDN Web Docs',
-      'React Official Documentation',
-      'Frontend Masters',
-      'CSS-Tricks',
+      { name: 'MDN Web Docs', url: 'https://developer.mozilla.org/' },
+      { name: 'React Official Documentation', url: 'https://react.dev/' },
+      { name: 'Frontend Masters', url: 'https://frontendmasters.com/' },
+      { name: 'CSS-Tricks', url: 'https://css-tricks.com/' },
+    ],
+    hiringCompanies: [
+      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
+      { id: 'netflix', name: 'Netflix', logo: '/images/Netflix.jpg' },
+      { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
     ],
   },
   backend: {
@@ -98,9 +116,16 @@ const roleData: Record<string, Role> = {
       },
     ],
     resources: [
-      'System Design Primer',
-      'Database Internals',
-      'Designing Data-Intensive Applications',
+      { name: 'System Design Primer', url: 'https://github.com/donnemartin/system-design-primer' },
+      { name: 'Database Internals', url: 'https://www.databass.dev/' },
+      { name: 'Designing Data-Intensive Applications', url: 'https://dataintensive.net/' },
+      { name: 'Node.js Documentation', url: 'https://nodejs.org/docs/' },
+    ],
+    hiringCompanies: [
+      { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
+      { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
+      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'apple', name: 'Apple', logo: '/images/Apple.jpg' },
     ],
   },
   fullstack: {
@@ -129,9 +154,16 @@ const roleData: Record<string, Role> = {
       },
     ],
     resources: [
-      'Full Stack Open',
-      'The Odin Project',
-      'freeCodeCamp',
+      { name: 'Full Stack Open', url: 'https://fullstackopen.com/' },
+      { name: 'The Odin Project', url: 'https://www.theodinproject.com/' },
+      { name: 'freeCodeCamp', url: 'https://www.freecodecamp.org/' },
+      { name: 'Web.dev', url: 'https://web.dev/' },
+    ],
+    hiringCompanies: [
+      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
+      { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
+      { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
     ],
   },
   devops: {
@@ -160,9 +192,16 @@ const roleData: Record<string, Role> = {
       },
     ],
     resources: [
-      'DevOps Roadmap',
-      'Kubernetes Documentation',
-      'AWS Certified DevOps',
+      { name: 'DevOps Roadmap', url: 'https://roadmap.sh/devops' },
+      { name: 'Kubernetes Documentation', url: 'https://kubernetes.io/docs/' },
+      { name: 'AWS Certified DevOps', url: 'https://aws.amazon.com/certification/certified-devops-engineer-professional/' },
+      { name: 'Docker Documentation', url: 'https://docs.docker.com/' },
+    ],
+    hiringCompanies: [
+      { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
+      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
+      { id: 'netflix', name: 'Netflix', logo: '/images/Netflix.jpg' },
     ],
   },
   'data-scientist': {
@@ -191,9 +230,16 @@ const roleData: Record<string, Role> = {
       },
     ],
     resources: [
-      'Kaggle',
-      'Coursera ML Specialization',
-      'Fast.ai',
+      { name: 'Kaggle', url: 'https://www.kaggle.com/' },
+      { name: 'Coursera ML Specialization', url: 'https://www.coursera.org/specializations/machine-learning-introduction' },
+      { name: 'Fast.ai', url: 'https://www.fast.ai/' },
+      { name: 'Scikit-learn Documentation', url: 'https://scikit-learn.org/' },
+    ],
+    hiringCompanies: [
+      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
+      { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
+      { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
     ],
   },
   'product-manager': {
@@ -222,9 +268,16 @@ const roleData: Record<string, Role> = {
       },
     ],
     resources: [
-      'Cracking the PM Interview',
-      'Product School',
-      'Mind the Product',
+      { name: 'Cracking the PM Interview', url: 'https://www.crackingthepminterview.com/' },
+      { name: 'Product School', url: 'https://productschool.com/' },
+      { name: 'Mind the Product', url: 'https://www.mindtheproduct.com/' },
+      { name: 'Product Coalition', url: 'https://productcoalition.com/' },
+    ],
+    hiringCompanies: [
+      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
+      { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
+      { id: 'apple', name: 'Apple', logo: '/images/Apple.jpg' },
     ],
   },
 };
@@ -316,17 +369,58 @@ export default function RolePreparation() {
         </div>
 
         {/* Learning Resources */}
-        <Card>
+        <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-2xl">Recommended Resources</CardTitle>
             <CardDescription>Top resources to accelerate your learning</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {role.resources.map((resource: string, index: number) => (
-                <Badge key={index} variant="secondary" className="text-base px-4 py-2">
-                  {resource}
-                </Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {role.resources.map((resource: Resource, index: number) => (
+                <a
+                  key={index}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:border-indigo-500 transition-all"
+                >
+                  <span className="font-medium">{resource.name}</span>
+                  <ExternalLink className="h-4 w-4 text-gray-400" />
+                </a>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Companies Hiring for This Role */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Companies Hiring for This Role</CardTitle>
+            <CardDescription>Top companies actively recruiting {role.name}s</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {role.hiringCompanies.map((company: Company) => (
+                <div
+                  key={company.id}
+                  className="flex flex-col items-center justify-center p-4 border rounded-lg hover:shadow-lg hover:border-indigo-500 transition-all cursor-pointer"
+                  onClick={() => navigate(`/company/${company.id}`)}
+                >
+                  <img
+                    src={company.logo}
+                    alt={company.name}
+                    className="h-12 w-auto object-contain mb-2"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.classList.remove('hidden');
+                    }}
+                  />
+                  <span className="text-2xl font-bold text-indigo-600 hidden">
+                    {company.name.charAt(0)}
+                  </span>
+                  <span className="text-sm font-medium text-center mt-2">{company.name}</span>
+                </div>
               ))}
             </div>
           </CardContent>
