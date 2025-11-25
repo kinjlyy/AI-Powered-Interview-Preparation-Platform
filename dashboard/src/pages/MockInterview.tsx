@@ -6,7 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Play, Pause, SkipForward, Mic, Keyboard, Building2, Briefcase } from 'lucide-react';
+import { ArrowLeft, Play, Pause, SkipForward, Mic, Keyboard, Building2, Briefcase, CheckCircle2 } from 'lucide-react';
+import { companyData } from '../lib/ai';
+import { evaluateWithAI } from '../lib/ai';
 import { toast } from 'sonner';
 
 const companies = [
@@ -66,12 +68,14 @@ export default function MockInterview() {
   const [isRecording, setIsRecording] = useState(false);
   const [answer, setAnswer] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState('');
+  const [aiEvaluating, setAiEvaluating] = useState(false);
 
-  const rounds = [
+  const [interviewRounds, setInterviewRounds] = useState(() => [
     { name: 'Technical Round', questions: generalQuestions.technical },
     { name: 'Coding Round', questions: generalQuestions.coding },
     { name: 'Behavioral Round', questions: generalQuestions.behavioral },
-  ];
+  ]);
 
   // Check for company parameter in URL
   useEffect(() => {
@@ -108,12 +112,12 @@ export default function MockInterview() {
       return;
     }
     setInterviewStarted(true);
-    setTimeLeft(roundTimers[rounds[0].name as keyof typeof roundTimers]);
+    setTimeLeft(roundTimers[interviewRounds[0].name as keyof typeof roundTimers]);
     toast.success('Mock interview started! Good luck!');
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestion < rounds[currentRound].questions.length - 1) {
+    if (currentQuestion < interviewRounds[currentRound].questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setAnswer('');
       setIsRecording(false);
@@ -121,16 +125,16 @@ export default function MockInterview() {
     } else if (currentRound < rounds.length - 1) {
       // Transition to next round with animation
       setIsTransitioning(true);
-      toast.success(`${rounds[currentRound].name} completed!`);
+      toast.success(`${interviewRounds[currentRound].name} completed!`);
       
       setTimeout(() => {
         setCurrentRound(currentRound + 1);
         setCurrentQuestion(0);
-        setTimeLeft(roundTimers[rounds[currentRound + 1].name as keyof typeof roundTimers]);
+        setTimeLeft(roundTimers[interviewRounds[currentRound + 1].name as keyof typeof roundTimers]);
         setAnswer('');
         setIsRecording(false);
         setIsTransitioning(false);
-        toast.info(`Starting ${rounds[currentRound + 1].name}`);
+        toast.info(`Starting ${interviewRounds[currentRound + 1].name}`);
       }, 2000);
     } else {
       toast.success('Mock interview completed! Great job!');
@@ -177,7 +181,7 @@ export default function MockInterview() {
   };
 
   const getTimeColor = () => {
-    const roundTime = roundTimers[rounds[currentRound].name as keyof typeof roundTimers];
+    const roundTime = roundTimers[interviewRounds[currentRound].name as keyof typeof roundTimers];
     const percentage = (timeLeft / roundTime) * 100;
     if (percentage > 50) return 'text-green-600';
     if (percentage > 25) return 'text-yellow-600';
@@ -193,10 +197,10 @@ export default function MockInterview() {
               <CheckCircle2 className="h-12 w-12 text-white" />
             </div>
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              {rounds[currentRound].name} Completed!
+              {interviewRounds[currentRound].name} Completed!
             </h2>
             <p className="text-xl text-gray-600">
-              Preparing {rounds[currentRound + 1].name}...
+              Preparing {interviewRounds[currentRound + 1].name}...
             </p>
           </div>
           <div className="flex justify-center">
@@ -361,7 +365,7 @@ export default function MockInterview() {
             </Button>
             <div className="flex items-center space-x-4">
               <Badge variant="secondary" className="text-base px-3 py-1">
-                {rounds[currentRound].name}
+                {interviewRounds[currentRound].name}
               </Badge>
               <span className={`text-2xl font-mono font-bold ${getTimeColor()}`}>
                 {formatTime(timeLeft)}
@@ -376,11 +380,11 @@ export default function MockInterview() {
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium">Round Progress</span>
             <span className="text-sm text-gray-600">
-              Question {currentQuestion + 1} of {rounds[currentRound].questions.length}
+                Question {currentQuestion + 1} of {interviewRounds[currentRound].questions.length}
             </span>
           </div>
           <Progress
-            value={((currentQuestion + 1) / rounds[currentRound].questions.length) * 100}
+            value={((currentQuestion + 1) / interviewRounds[currentRound].questions.length) * 100}
             className="h-2"
           />
         </div>
@@ -392,7 +396,7 @@ export default function MockInterview() {
                 <CardTitle className="text-2xl mb-2">
                   Question {currentQuestion + 1}
                 </CardTitle>
-                <Badge className="bg-indigo-100 text-indigo-800">{rounds[currentRound].name}</Badge>
+                <Badge className="bg-indigo-100 text-indigo-800">{interviewRounds[currentRound].name}</Badge>
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -409,7 +413,7 @@ export default function MockInterview() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-lg mb-6">{rounds[currentRound].questions[currentQuestion]}</p>
+            <p className="text-lg mb-6">{interviewRounds[currentRound].questions[currentQuestion]}</p>
 
             <div className="mb-4 flex gap-2">
               <Button
