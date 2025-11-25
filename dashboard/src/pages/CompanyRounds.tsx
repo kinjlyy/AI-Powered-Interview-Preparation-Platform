@@ -134,6 +134,12 @@ export default function CompanyRounds() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingQuestionId, setRecordingQuestionId] = useState<number | null>(null);
   const [aiFeedback, setAiFeedback] = useState<Record<number, string>>({});
+  const [aiEvaluating, setAiEvaluating] = useState<Record<number, boolean>>({});
+  const [evaluationRequested, setEvaluationRequested] = useState<Record<number, boolean>>({});
+  const [voiceStatus, setVoiceStatus] = useState<Record<number, string>>({});
+  // If the user presses "Submit" from the voice UI while recording, we'll stop recognition
+  // and let onend perform evaluation. If they're not recording, evaluate immediately.
+  const [interimTranscripts, setInterimTranscripts] = useState<Record<number, string>>({});
   const recognitionRef = useRef<any | null>(null);
 
   const company = companyId ? companyData[companyId] : null;
@@ -243,6 +249,13 @@ remove stars before answering
 };
 
 
+  const getQuestionTextById = (round: string | null, questionId: number) => {
+    if (!round) return '';
+    if (round === 'technical') return company.rounds.technical[questionId] || '';
+    if (round === 'hr') return company.rounds.hr[questionId - 100] || '';
+    return '';
+  };
+
   const handleVoiceInput = (questionId: number) => {
   const SpeechRecognition =
     (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -254,11 +267,19 @@ remove stars before answering
 
   // Stop existing recognition if running
   if (recognitionRef.current) {
+    // If existing recorder is for the same question, stop (toggle behavior)
+    if (recordingQuestionId === questionId) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      setIsRecording(false);
+      setRecordingQuestionId(null);
+      return;
+    }
+    // Otherwise, stop previous and proceed to start new
     recognitionRef.current.stop();
     recognitionRef.current = null;
     setIsRecording(false);
     setRecordingQuestionId(null);
-    return;
   }
 
   const recognition = new SpeechRecognition();
@@ -270,16 +291,34 @@ remove stars before answering
     recognitionRef.current = recognition;
     setIsRecording(true);
     setRecordingQuestionId(questionId);
+    setVoiceStatus(prev => ({ ...prev, [questionId]: 'recording' }));
+    // clear interim and AI feedback for this question when starting
+    setInterimTranscripts(prev => ({ ...prev, [questionId]: '' }));
+    setAiFeedback(prev => ({ ...prev, [questionId]: '' }));
     toast.info('Recording started... Speak now!');
   };
 
-  recognition.onresult = (event: any) => {
-    let transcript = '';
+    recognition.onresult = (event: any) => {
+    let interim = '';
+    let finalText = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
+      const res = event.results[i][0];
+      if (event.results[i].isFinal) {
+        finalText += res.transcript;
+      } else {
+        interim += res.transcript;
+      }
     }
-    transcript = transcript.trim();
-    setTextAnswers((prev) => ({ ...prev, [questionId]: transcript }));
+    // set interim transcript for this question (real-time display)
+    const newInterim = (finalText + interim).trim();
+    setInterimTranscripts(prev => ({ ...prev, [questionId]: newInterim }));
+    // Update the text answer to show in textarea as well
+    // Append finalText only if it adds something new to avoid duplication
+    setTextAnswers(prev => {
+      const existing = prev[questionId] || '';
+      const combined = (existing + finalText).trim();
+      return { ...prev, [questionId]: combined };
+    });
   };
 
     recognition.onerror = (err: any) => {
@@ -290,29 +329,93 @@ remove stars before answering
     toast.error('Voice recognition failed');
   };
 
-  recognition.onend = () => {
-  setIsRecording(false);
-  setRecordingQuestionId(null);
-  recognitionRef.current = null;
-  toast.success('Recording ended. Sending to AI for feedback...');
+    recognition.onend = () => {
+    setIsRecording(false);
+    setRecordingQuestionId(null);
+    recognitionRef.current = null;
+    toast.success('Recording ended. Sending to AI for feedback...');
+    setVoiceStatus(prev => ({ ...prev, [questionId]: 'stopped' }));
 
-    // Trigger AI evaluation after voice recording ends
-    const questionText =
-      selectedRound === 'hr' || selectedRound === 'technical'
-        ? company.rounds[selectedRound][questionId % 100] ||
-          company.rounds[selectedRound][questionId]
-        : '';
-    const userAnswer = textAnswers[questionId] || '';
+    // get question text by mapping the id correctly
+    const questionText = getQuestionTextById(selectedRound, questionId);
+    const userAnswer = (textAnswers[questionId] || interimTranscripts[questionId] || '').trim();
 
-    if (userAnswer.trim() !== '') {
+    if (userAnswer !== '') {
+      const shouldEvaluate = evaluationRequested[questionId] || true; // by default evaluate on end
+      // If evaluation wasn't requested and we don't want auto-eval, skip: here we auto-evaluate
+      if (!shouldEvaluate) {
+        setVoiceStatus(prev => ({ ...prev, [questionId]: 'idle' }));
+        return;
+      }
+      setVoiceStatus(prev => ({ ...prev, [questionId]: 'evaluating' }));
+      setAiEvaluating(prev => ({ ...prev, [questionId]: true }));
+      console.debug('Evaluating AI for question', questionId, { questionText, userAnswer });
+      toast.loading('AI is evaluating...');
       evaluateWithAI(questionText, userAnswer).then((feedback) => {
         setAiFeedback((prev) => ({ ...prev, [questionId]: feedback }));
+        toast.dismiss();
+        toast.success('AI evaluation complete');
+      }).catch((err) => {
+        console.error('AI evaluation error', err);
+        toast.dismiss();
+        // If this looks like a CORS or network error, add helpful message
+        setAiFeedback((prev) => ({ ...prev, [questionId]: `AI evaluation failed: ${err?.message || String(err)}. If this is a browser CORS issue, try calling the API from a backend.` }));
+        toast.error('AI evaluation failed');
+      }).finally(() => {
+        setAiEvaluating(prev => ({ ...prev, [questionId]: false }));
+        setVoiceStatus(prev => ({ ...prev, [questionId]: 'done' }));
+        setEvaluationRequested(prev => ({ ...prev, [questionId]: false }));
       });
     }
+    // Clear interim transcript
+    setInterimTranscripts(prev => ({ ...prev, [questionId]: '' }));
   };
 
     recognition.start();
 };
+
+  // Handles submit from voice UI; either stops recording to trigger onend evaluation
+  // or directly evaluates the current spoken/typed text if not recording.
+  const handleVoiceSubmit = async (questionId: number) => {
+    const questionText = getQuestionTextById(selectedRound, questionId);
+    const currentAnswer = (textAnswers[questionId] || interimTranscripts[questionId] || '').trim();
+    if (!currentAnswer) {
+      toast.error('No spoken answer to evaluate yet. Please record or type your answer first.');
+      return;
+    }
+
+    // If currently recording for this question, stop recording and let onend evaluate
+    if (recordingQuestionId === questionId && recognitionRef.current) {
+      // request evaluation when recognition.onend is called after we stop
+      setEvaluationRequested(prev => ({ ...prev, [questionId]: true }));
+      setVoiceStatus(prev => ({ ...prev, [questionId]: 'pendingEvaluation' }));
+      toast.loading('Stopping recording and evaluating...');
+      try {
+        recognitionRef.current.stop();
+      } catch (err) {
+        console.error('Failed to stop recognition', err);
+        toast.error('Failed to stop recording. Try again.');
+      }
+      return;
+    }
+
+    // Not recording: evaluate right now.
+    setAiEvaluating(prev => ({ ...prev, [questionId]: true }));
+    toast.loading('AI is evaluating...');
+    try {
+      const feedback = await evaluateWithAI(questionText, currentAnswer);
+      setAiFeedback(prev => ({ ...prev, [questionId]: feedback }));
+      toast.dismiss();
+      toast.success('AI evaluation complete');
+    } catch (err) {
+      console.error('AI eval error (voice submit)', err);
+      toast.dismiss();
+      setAiFeedback(prev => ({ ...prev, [questionId]: `AI evaluation failed: ${err?.message || String(err)}` }));
+      toast.error('AI evaluation failed');
+    } finally {
+      setAiEvaluating(prev => ({ ...prev, [questionId]: false }));
+    }
+  };
 
   // Handle textual submissions for AI review
   const handleTextAnswerSubmit = async (questionId: number, questionText: string) => {
@@ -322,15 +425,18 @@ remove stars before answering
       return;
     }
     toast.loading('AI evaluating...');
+    setAiEvaluating(prev => ({ ...prev, [questionId]: true }));
     try {
       const feedback = await evaluateWithAI(questionText, answer);
       setAiFeedback((prev) => ({ ...prev, [questionId]: feedback }));
       toast.dismiss();
       toast.success('Evaluation complete');
+      setAiEvaluating(prev => ({ ...prev, [questionId]: false }));
     } catch (err) {
       console.error('AI evaluation error', err);
       toast.dismiss();
       toast.error('AI evaluation failed');
+      setAiEvaluating(prev => ({ ...prev, [questionId]: false }));
     }
   };
 
@@ -519,14 +625,30 @@ remove stars before answering
                                 🤖 AI Feedback: {aiFeedback[index]}
                               </div>
                             )}
+                            {aiEvaluating[index] && (
+                              <div className="mt-4 p-2 text-sm text-gray-600">Evaluating... Please wait.</div>
+                            )}
                           </>
                         ) : (
-                          <div className="text-center py-8">
-                            <Button size="lg" onClick={() => handleVoiceInput(index)} className={recordingQuestionId === index ? "bg-red-500 hover:bg-red-600" : ""}>
-                              <Mic className="mr-2 h-5 w-5" />
-                              {recordingQuestionId === index ? "Recording..." : "Start Recording"}
-                            </Button>
-                            <p className="text-sm text-gray-600 mt-4">Click to record your answer</p>
+                          <div className="space-y-4">
+                            <div className="p-3 bg-gray-50 border rounded min-h-[100px] text-left whitespace-pre-line">
+                              {interimTranscripts[index] || textAnswers[index] || 'Click to start and speak your answer...'}
+                            </div>
+                            <div className="text-sm text-gray-500">{voiceStatus[index] || 'Idle'}</div>
+                            <div className="flex gap-2 justify-center">
+                              <Button size="lg" onClick={() => handleVoiceInput(index)} className={recordingQuestionId === index ? "bg-red-500 hover:bg-red-600" : ""}>
+                                <Mic className="mr-2 h-5 w-5" />
+                                {recordingQuestionId === index ? "Recording..." : "Start Recording"}
+                              </Button>
+                              <Button size="lg" variant="outline" onClick={() => handleVoiceSubmit(index)} disabled={!!aiEvaluating[index]}>
+                                {aiEvaluating[index] ? 'Evaluating...' : 'Submit for AI Review'}
+                              </Button>
+                            </div>
+                            {aiFeedback[index] && (
+                              <div className="mt-4 p-3 bg-green-50 border border-green-300 rounded-md text-green-700 whitespace-pre-line">
+                                🤖 AI Feedback: {aiFeedback[index]}
+                              </div>
+                            )}
                           </div>
                         )}
                       </CardContent>
@@ -570,14 +692,30 @@ remove stars before answering
                                 🤖 AI Feedback: {aiFeedback[index + 100]}
                               </div>
                             )}
+                            {aiEvaluating[index + 100] && (
+                              <div className="mt-4 p-2 text-sm text-gray-600">Evaluating... Please wait.</div>
+                            )}
                           </>
                         ) : (
-                          <div className="text-center py-8">
-                            <Button size="lg" onClick={() => handleVoiceInput(index + 100)} className={recordingQuestionId === index + 100 ? "bg-red-500 hover:bg-red-600" : ""}>
-                              <Mic className="mr-2 h-5 w-5" />
-                              {recordingQuestionId === index + 100 ? "Recording..." : "Start Recording"}
-                            </Button>
-                            <p className="text-sm text-gray-600 mt-4">Click to record your answer</p>
+                          <div className="space-y-4">
+                            <div className="p-3 bg-gray-50 border rounded min-h-[100px] text-left whitespace-pre-line">
+                              {interimTranscripts[index + 100] || textAnswers[index + 100] || 'Click to start and speak your answer...'}
+                            </div>
+                            <div className="text-sm text-gray-500">{voiceStatus[index + 100] || 'Idle'}</div>
+                            <div className="flex gap-2 justify-center">
+                              <Button size="lg" onClick={() => handleVoiceInput(index + 100)} className={recordingQuestionId === index + 100 ? "bg-red-500 hover:bg-red-600" : ""}>
+                                <Mic className="mr-2 h-5 w-5" />
+                                {recordingQuestionId === index + 100 ? "Recording..." : "Start Recording"}
+                              </Button>
+                              <Button size="lg" variant="outline" onClick={() => handleVoiceSubmit(index + 100)} disabled={!!aiEvaluating[index + 100]}>
+                                {aiEvaluating[index + 100] ? 'Evaluating...' : 'Submit for AI Review'}
+                              </Button>
+                            </div>
+                            {aiFeedback[index + 100] && (
+                              <div className="mt-4 p-3 bg-green-50 border border-green-300 rounded-md text-green-700 whitespace-pre-line">
+                                🤖 AI Feedback: {aiFeedback[index + 100]}
+                              </div>
+                            )}
                           </div>
                         )}
                       </CardContent>
