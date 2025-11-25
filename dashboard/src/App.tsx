@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
 import CompanyRounds from './pages/CompanyRounds';
 import RolePreparation from './pages/RolePreparation';
-import Practice from './pages/Practice';
 import SvarPractice from './pages/SvarPractice';
 import MockInterview from './pages/MockInterview';
 import Questions from './pages/Questions';
@@ -23,7 +22,6 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/company/:companyId" element={<CompanyRounds />} />
           <Route path="/role/:roleId" element={<RolePreparation />} />
-          <Route path="/practice" element={<Practice />} />
           <Route path="/svar-practice" element={<SvarPractice />} />
           <Route path="/mock-interview" element={<MockInterview />} />
           <Route path="/questions" element={<Questions />} />

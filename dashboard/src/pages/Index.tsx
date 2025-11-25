@@ -54,10 +54,7 @@ export default function Index() {
                 <Code className="mr-2 h-4 w-4" />
                 Questions
               </Button>
-              <Button variant="ghost" onClick={() => navigate('/practice')}>
-                <Code className="mr-2 h-4 w-4" />
-                Practice
-              </Button>
+              {/* Practice link removed as requested */}
               <Button variant="ghost" onClick={() => navigate('/svar-practice')}>
                 <Mic className="mr-2 h-4 w-4" />
                 SVAR Round

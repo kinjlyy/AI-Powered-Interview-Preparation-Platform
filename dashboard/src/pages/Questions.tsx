@@ -167,10 +167,7 @@ export default function Questions() {
                 <Code className="mr-2 h-4 w-4" />
                 Questions
               </Button>
-              <Button variant="ghost" onClick={() => navigate('/practice')}>
-                <Zap className="mr-2 h-4 w-4" />
-                Practice
-              </Button>
+              {/* Practice link removed */}
               <Button variant="ghost" onClick={() => navigate('/svar-practice')}>
                 <TrendingUp className="mr-2 h-4 w-4" />
                 SVAR Round
@@ -263,7 +260,7 @@ export default function Questions() {
                         <img
                           src={company.logo}
                           alt={company.name}
-                          className="h-5 w-5 object-contain"
+                          className="h-6 w-6 object-contain"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                             const fallback = e.currentTarget.nextElementSibling as HTMLElement;
