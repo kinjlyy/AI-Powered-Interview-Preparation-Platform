@@ -64,7 +64,7 @@ export default function MockInterview() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300);
   const [isPaused, setIsPaused] = useState(false);
-  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
+      // Transition to next round with animation
   const [isRecording, setIsRecording] = useState(false);
   const [answer, setAnswer] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -85,6 +85,26 @@ export default function MockInterview() {
       setSelectedCompany(companyParam);
     }
   }, [searchParams]);
+  // Update interview rounds when a company is selected
+  useEffect(() => {
+    if (selectionMode === 'company' && selectedCompany) {
+      const data = companyData[selectedCompany];
+      if (data) {
+        const companyRounds = [
+          { name: 'Technical Round', questions: data.rounds.technical },
+          { name: 'Coding Round', questions: data.rounds.coding.map((c) => c.title) },
+          { name: 'Behavioral Round', questions: data.rounds.hr },
+        ];
+        setInterviewRounds(companyRounds as any);
+      }
+    } else if (selectionMode === 'general' || selectionMode === 'role') {
+      setInterviewRounds([
+        { name: 'Technical Round', questions: generalQuestions.technical },
+        { name: 'Coding Round', questions: generalQuestions.coding },
+        { name: 'Behavioral Round', questions: generalQuestions.behavioral },
+      ]);
+    }
+  }, [selectionMode, selectedCompany]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -122,7 +142,7 @@ export default function MockInterview() {
       setAnswer('');
       setIsRecording(false);
       toast.info('Moving to next question');
-    } else if (currentRound < rounds.length - 1) {
+    } else if (currentRound < interviewRounds.length - 1) {
       // Transition to next round with animation
       setIsTransitioning(true);
       toast.success(`${interviewRounds[currentRound].name} completed!`);
@@ -156,9 +176,14 @@ export default function MockInterview() {
       setTimeout(() => {
         setIsRecording(false);
         toast.success('Recording completed! AI is analyzing your response...');
-        setTimeout(() => {
-          toast.info('AI Feedback: Good explanation! Consider adding more examples.');
-        }, 1500);
+        // Simulate transcribed answer (in a real app you'd use SpeechRecognition to capture)
+        const spokenAnswer = answer || 'This is a simulated spoken answer for testing.';
+        setAiEvaluating(true);
+        const questionText = interviewRounds[currentRound].questions[currentQuestion];
+        evaluateWithAI(`Evaluate this answer for the question: "${questionText}". Answer: "${spokenAnswer}". Provide concise feedback, correct technical inaccuracies, and suggest improvements.`)
+          .then((r) => setAiFeedback(r))
+          .catch((e) => toast.error(String(e)))
+          .finally(() => setAiEvaluating(false));
       }, 3000);
     }
   };
@@ -169,9 +194,16 @@ export default function MockInterview() {
       return;
     }
     toast.success('Answer submitted! AI is evaluating...');
-    setTimeout(() => {
-      toast.info('AI Feedback: Well-structured answer with good technical depth.');
-    }, 1500);
+    setAiEvaluating(true);
+    const questionText = interviewRounds[currentRound].questions[currentQuestion];
+    const candidateAnswer = answer;
+    evaluateWithAI(`Evaluate this answer for the question: "${questionText}". Answer: "${candidateAnswer}". Provide concise feedback, correct technical inaccuracies, and suggest improvements.`)
+      .then((r) => setAiFeedback(r))
+      .catch((e) => {
+        console.error(e);
+        toast.error('AI evaluation failed.');
+      })
+      .finally(() => setAiEvaluating(false));
   };
 
   const formatTime = (seconds: number) => {
