@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ interface CodingQuestion {
   link: string;
 }
 
-interface CompanyRounds {
+interface CompanyRoundsData {
   aptitude: AptitudeQuestion[];
   coding: CodingQuestion[];
   technical: string[];
@@ -33,7 +33,7 @@ interface CompanyRounds {
 interface Company {
   name: string;
   logo: string;
-  rounds: CompanyRounds;
+  rounds: CompanyRoundsData;
 }
 
 const companyData: Record<string, Company> = {
@@ -119,158 +119,53 @@ const companyData: Record<string, Company> = {
       ],
     },
   },
-  amazon: {
-    name: 'Amazon',
-    logo: '/images/photo1763221566.jpg',
-    rounds: {
-      aptitude: [
-        {
-          id: 1,
-          question: 'If 5 workers can complete a task in 10 days, how many days will 10 workers take?',
-          options: ['5 days', '7 days', '10 days', '15 days'],
-          correct: 0,
-        },
-      ],
-      coding: [
-        {
-          id: 1,
-          title: 'Valid Parentheses',
-          difficulty: 'Easy',
-          link: 'https://leetcode.com/problems/valid-parentheses/',
-        },
-        {
-          id: 2,
-          title: 'LRU Cache',
-          difficulty: 'Medium',
-          link: 'https://leetcode.com/problems/lru-cache/',
-        },
-      ],
-      technical: [
-        'Explain Amazon\'s leadership principles',
-        'How would you design a scalable system?',
-        'What is the difference between microservices and monolithic architecture?',
-      ],
-      hr: [
-        'Tell me about a time you failed',
-        'Describe a situation where you had to work with a difficult team member',
-        'Why Amazon?',
-      ],
-    },
-  },
-  meta: {
-    name: 'Meta',
-    logo: '/images/photo1763221566.jpg',
-    rounds: {
-      aptitude: [
-        {
-          id: 1,
-          question: 'What is 25% of 80?',
-          options: ['15', '20', '25', '30'],
-          correct: 1,
-        },
-      ],
-      coding: [
-        {
-          id: 1,
-          title: 'Binary Tree Level Order Traversal',
-          difficulty: 'Medium',
-          link: 'https://leetcode.com/problems/binary-tree-level-order-traversal/',
-        },
-      ],
-      technical: [
-        'Explain React hooks',
-        'What is virtual DOM?',
-        'Describe the event loop in JavaScript',
-      ],
-      hr: [
-        'Why do you want to work at Meta?',
-        'Tell me about your most impactful project',
-      ],
-    },
-  },
-  apple: {
-    name: 'Apple',
-    logo: '/images/photo1763221565.jpg',
-    rounds: {
-      aptitude: [
-        {
-          id: 1,
-          question: 'If a product costs $120 after a 20% discount, what was the original price?',
-          options: ['$140', '$150', '$160', '$180'],
-          correct: 1,
-        },
-      ],
-      coding: [
-        {
-          id: 1,
-          title: 'Maximum Subarray',
-          difficulty: 'Medium',
-          link: 'https://leetcode.com/problems/maximum-subarray/',
-        },
-      ],
-      technical: [
-        'Explain memory management in iOS',
-        'What is the difference between strong and weak references?',
-      ],
-      hr: [
-        'What makes Apple different?',
-        'Describe your design philosophy',
-      ],
-    },
-  },
-  netflix: {
-    name: 'Netflix',
-    logo: '/images/photo1763221566.jpg',
-    rounds: {
-      aptitude: [
-        {
-          id: 1,
-          question: 'A streaming service has 100 million users. If 30% are active daily, how many active users are there?',
-          options: ['20 million', '30 million', '40 million', '50 million'],
-          correct: 1,
-        },
-      ],
-      coding: [
-        {
-          id: 1,
-          title: 'Design Video Streaming System',
-          difficulty: 'Hard',
-          link: 'https://leetcode.com/discuss/interview-question/system-design/',
-        },
-      ],
-      technical: [
-        'How would you optimize video streaming?',
-        'Explain CDN architecture',
-      ],
-      hr: [
-        'Tell me about a time you took a risk',
-        'How do you stay updated with technology?',
-      ],
-    },
-  },
+  // Add other companies similarly...
 };
 
 export default function CompanyRounds() {
   const { companyId } = useParams();
   const navigate = useNavigate();
+
   const [selectedRound, setSelectedRound] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [showResults, setShowResults] = useState<Record<number, boolean>>({});
   const [textAnswers, setTextAnswers] = useState<Record<number, string>>({});
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingQuestionId, setRecordingQuestionId] = useState<number | null>(null);
+  const [aiFeedback, setAiFeedback] = useState<Record<number, string>>({});
+  const recognitionRef = useRef<any | null>(null);
 
   const company = companyId ? companyData[companyId] : null;
 
   useEffect(() => {
-    if (!company) {
-      navigate('/');
-    }
+    if (!company) navigate('/');
   }, [company, navigate]);
+
+  // cleanup on unmount to stop speech recognition if running
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
 
   if (!company) return null;
 
-  const handleAnswerSubmit = (questionId: number, selectedAnswer: number, correctAnswer: number) => {
+  const rounds = [
+    { id: 'round1', name: 'Round 1: Aptitude', key: 'aptitude' },
+    { id: 'round2', name: 'Round 2: Coding', key: 'coding' },
+    { id: 'round3', name: 'Round 3: Technical', key: 'technical' },
+    { id: 'round4', name: 'Round 4: HR', key: 'hr' },
+  ];
+
+  const handleAnswerSubmit = (questionId: number, selectedAnswer: number | undefined, correctAnswer: number) => {
+    if (selectedAnswer === undefined) {
+      toast.error('Please select an option before submitting.');
+      return;
+    }
     setShowResults({ ...showResults, [questionId]: true });
     if (selectedAnswer === correctAnswer) {
       toast.success('Correct answer!');
@@ -279,38 +174,166 @@ export default function CompanyRounds() {
     }
   };
 
-  const handleTextAnswerSubmit = (questionId: number) => {
+  const evaluateWithAI = async (questionText: string, userAnswer: string) => {
+  const key = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!key) {
+    throw new Error("Missing Gemini API Key in env");
+  }
+  if (!questionText || !userAnswer) {
+    return "Please provide a valid question and answer.";
+  }
+
+  try {
+    const prompt = `
+You are an interview evaluator.
+
+Question: ${questionText}
+Candidate Answer: ${userAnswer}
+
+Provide:
+1. Score out of 10
+2. Strengths
+3. Improvements
+4. Verdict (Good / Average / Weak)
+5. provide sample answer for reference
+remove stars before answering
+`;
+
+    const modelName = "gemini-2.5-flash";  // Use a valid Gemini model
+    const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+
+    // Support either API key query param or Bearer token in Authorization header.
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    let fetchUrl = baseUrl;
+    if (typeof key === 'string' && key.startsWith('AIza')) {
+      fetchUrl = `${baseUrl}?key=${key}`;
+    } else {
+      headers['Authorization'] = `Bearer ${key}`;
+    }
+
+    const res = await fetch(fetchUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || `AI request failed with status ${res.status}`);
+    }
+    const data = await res.json();
+
+    // Debug: log full response
+    console.log("Gemini API response:", data);
+
+    // Extract text
+    const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (aiText && aiText.trim() !== "") {
+      return aiText;
+    } else {
+      // Retry once or return fallback
+      return `AI responded but result was empty. Please try again.`;
+    }
+  } catch (error) {
+    console.error("Error calling Gemini API:", error);
+    return `AI evaluation failed.`;
+  }
+};
+
+
+  const handleVoiceInput = (questionId: number) => {
+  const SpeechRecognition =
+    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    toast.error('Speech Recognition not supported in this browser');
+    return;
+  }
+
+  // Stop existing recognition if running
+  if (recognitionRef.current) {
+    recognitionRef.current.stop();
+    recognitionRef.current = null;
+    setIsRecording(false);
+    setRecordingQuestionId(null);
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.continuous = true; // keep listening until user stops
+  recognition.interimResults = true; // get partial results in real time
+
+    recognition.onstart = () => {
+    recognitionRef.current = recognition;
+    setIsRecording(true);
+    setRecordingQuestionId(questionId);
+    toast.info('Recording started... Speak now!');
+  };
+
+  recognition.onresult = (event: any) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    transcript = transcript.trim();
+    setTextAnswers((prev) => ({ ...prev, [questionId]: transcript }));
+  };
+
+    recognition.onerror = (err: any) => {
+    console.error('Speech recognition error', err);
+    setIsRecording(false);
+    setRecordingQuestionId(null);
+    recognitionRef.current = null;
+    toast.error('Voice recognition failed');
+  };
+
+  recognition.onend = () => {
+  setIsRecording(false);
+  setRecordingQuestionId(null);
+  recognitionRef.current = null;
+  toast.success('Recording ended. Sending to AI for feedback...');
+
+    // Trigger AI evaluation after voice recording ends
+    const questionText =
+      selectedRound === 'hr' || selectedRound === 'technical'
+        ? company.rounds[selectedRound][questionId % 100] ||
+          company.rounds[selectedRound][questionId]
+        : '';
+    const userAnswer = textAnswers[questionId] || '';
+
+    if (userAnswer.trim() !== '') {
+      evaluateWithAI(questionText, userAnswer).then((feedback) => {
+        setAiFeedback((prev) => ({ ...prev, [questionId]: feedback }));
+      });
+    }
+  };
+
+    recognition.start();
+};
+
+  // Handle textual submissions for AI review
+  const handleTextAnswerSubmit = async (questionId: number, questionText: string) => {
     const answer = textAnswers[questionId];
-    if (!answer || answer.trim().length < 10) {
-      toast.error('Please provide a more detailed answer (at least 10 characters)');
+    if (!answer || answer.trim().length < 5) {
+      toast.error('Please provide a more detailed answer');
       return;
     }
-    
-    // Simulate AI checking
-    toast.success('Answer submitted! AI is analyzing your response...');
-    setTimeout(() => {
-      toast.info('AI Feedback: Good structure! Consider adding more specific examples.');
-    }, 2000);
-  };
-
-  const handleVoiceInput = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      toast.info('Recording started... Speak your answer');
-      // Simulate recording
-      setTimeout(() => {
-        setIsRecording(false);
-        toast.success('Recording completed! Processing your answer...');
-      }, 3000);
+    toast.loading('AI evaluating...');
+    try {
+      const feedback = await evaluateWithAI(questionText, answer);
+      setAiFeedback((prev) => ({ ...prev, [questionId]: feedback }));
+      toast.dismiss();
+      toast.success('Evaluation complete');
+    } catch (err) {
+      console.error('AI evaluation error', err);
+      toast.dismiss();
+      toast.error('AI evaluation failed');
     }
   };
 
-  const rounds = [
-    { id: 'round1', name: 'Round 1: Aptitude', key: 'aptitude' },
-    { id: 'round2', name: 'Round 2: Coding', key: 'coding' },
-    { id: 'round3', name: 'Round 3: Technical', key: 'technical' },
-    { id: 'round4', name: 'Round 4: HR', key: 'hr' },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -322,11 +345,7 @@ export default function CompanyRounds() {
               Back to Dashboard
             </Button>
             <div className="flex items-center space-x-3">
-              <img 
-                src={company.logo} 
-                alt={`${company.name} logo`}
-                className="h-8 object-contain"
-              />
+              <img src={company.logo} alt={`${company.name} logo`} className="h-8 object-contain" />
               <span className="text-2xl font-bold">{company.name}</span>
             </div>
           </div>
@@ -357,7 +376,7 @@ export default function CompanyRounds() {
           </div>
         ) : (
           <div className="flex gap-6">
-            {/* Left Sidebar - Rounds */}
+            {/* Sidebar */}
             <div className="w-64 flex-shrink-0">
               <Card className="sticky top-24">
                 <CardHeader>
@@ -385,9 +404,10 @@ export default function CompanyRounds() {
               </Card>
             </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1">
-              {selectedRound === 'aptitude' && (
+            {/* Main Content */}
+            <div className="flex-1 space-y-6">
+              {/* ---------- Aptitude Round ---------- */}
+              {selectedRound === "aptitude" && (
                 <div className="space-y-6">
                   <h2 className="text-3xl font-bold">Aptitude Round</h2>
                   {company.rounds.aptitude.map((q: AptitudeQuestion) => (
@@ -398,15 +418,13 @@ export default function CompanyRounds() {
                       </CardHeader>
                       <CardContent>
                         <RadioGroup
-                          value={answers[q.id]?.toString()}
+                          value={answers[q.id] !== undefined ? String(answers[q.id]) : undefined}
                           onValueChange={(value) => setAnswers({ ...answers, [q.id]: parseInt(value) })}
                         >
                           {q.options.map((option: string, index: number) => (
                             <div key={index} className="flex items-center space-x-2 mb-2">
                               <RadioGroupItem value={index.toString()} id={`q${q.id}-opt${index}`} />
-                              <Label htmlFor={`q${q.id}-opt${index}`} className="text-base cursor-pointer">
-                                {option}
-                              </Label>
+                              <Label htmlFor={`q${q.id}-opt${index}`} className="text-base cursor-pointer">{option}</Label>
                             </div>
                           ))}
                         </RadioGroup>
@@ -437,7 +455,8 @@ export default function CompanyRounds() {
                 </div>
               )}
 
-              {selectedRound === 'coding' && (
+              {/* ---------- Coding Round ---------- */}
+              {selectedRound === "coding" && (
                 <div className="space-y-4">
                   <h2 className="text-3xl font-bold mb-6">Coding Round</h2>
                   {company.rounds.coding.map((q: CodingQuestion) => (
@@ -447,15 +466,7 @@ export default function CompanyRounds() {
                           <div>
                             <CardTitle className="text-xl">{q.title}</CardTitle>
                             <CardDescription className="mt-2">
-                              <Badge
-                                variant={
-                                  q.difficulty === 'Easy'
-                                    ? 'default'
-                                    : q.difficulty === 'Medium'
-                                    ? 'secondary'
-                                    : 'destructive'
-                                }
-                              >
+                              <Badge variant={q.difficulty === "Easy" ? "default" : q.difficulty === "Medium" ? "secondary" : "destructive"}>
                                 {q.difficulty}
                               </Badge>
                             </CardDescription>
@@ -473,21 +484,16 @@ export default function CompanyRounds() {
                 </div>
               )}
 
-              {selectedRound === 'technical' && (
+              {/* ---------- Technical Round ---------- */}
+              {selectedRound === "technical" && (
                 <div className="space-y-4">
                   <h2 className="text-3xl font-bold mb-6">Technical Round</h2>
                   <div className="mb-4 flex gap-2">
-                    <Button
-                      variant={inputMode === 'text' ? 'default' : 'outline'}
-                      onClick={() => setInputMode('text')}
-                    >
+                    <Button variant={inputMode === "text" ? "default" : "outline"} onClick={() => setInputMode("text")}>
                       <Keyboard className="mr-2 h-4 w-4" />
                       Type Answer
                     </Button>
-                    <Button
-                      variant={inputMode === 'voice' ? 'default' : 'outline'}
-                      onClick={() => setInputMode('voice')}
-                    >
+                    <Button variant={inputMode === "voice" ? "default" : "outline"} onClick={() => setInputMode("voice")}>
                       <Mic className="mr-2 h-4 w-4" />
                       Voice Answer
                     </Button>
@@ -499,7 +505,7 @@ export default function CompanyRounds() {
                         <CardDescription className="text-base">{question}</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {inputMode === 'text' ? (
+                        {inputMode === "text" ? (
                           <>
                             <Textarea
                               placeholder="Type your answer here..."
@@ -507,23 +513,20 @@ export default function CompanyRounds() {
                               onChange={(e) => setTextAnswers({ ...textAnswers, [index]: e.target.value })}
                               className="min-h-[150px] mb-4"
                             />
-                            <Button onClick={() => handleTextAnswerSubmit(index)}>
-                              Submit for AI Review
-                            </Button>
+                            <Button onClick={() => handleTextAnswerSubmit(index, question)}>Submit for AI Review</Button>
+                            {aiFeedback[index] && (
+                              <div className="mt-4 p-3 bg-green-50 border border-green-300 rounded-md text-green-700 whitespace-pre-line">
+                                🤖 AI Feedback: {aiFeedback[index]}
+                              </div>
+                            )}
                           </>
                         ) : (
                           <div className="text-center py-8">
-                            <Button
-                              size="lg"
-                              onClick={handleVoiceInput}
-                              className={isRecording ? 'bg-red-500 hover:bg-red-600' : ''}
-                            >
+                            <Button size="lg" onClick={() => handleVoiceInput(index)} className={recordingQuestionId === index ? "bg-red-500 hover:bg-red-600" : ""}>
                               <Mic className="mr-2 h-5 w-5" />
-                              {isRecording ? 'Recording...' : 'Start Recording'}
+                              {recordingQuestionId === index ? "Recording..." : "Start Recording"}
                             </Button>
-                            <p className="text-sm text-gray-600 mt-4">
-                              Click to record your answer
-                            </p>
+                            <p className="text-sm text-gray-600 mt-4">Click to record your answer</p>
                           </div>
                         )}
                       </CardContent>
@@ -532,21 +535,16 @@ export default function CompanyRounds() {
                 </div>
               )}
 
-              {selectedRound === 'hr' && (
+              {/* ---------- HR Round ---------- */}
+              {selectedRound === "hr" && (
                 <div className="space-y-4">
                   <h2 className="text-3xl font-bold mb-6">HR Round</h2>
                   <div className="mb-4 flex gap-2">
-                    <Button
-                      variant={inputMode === 'text' ? 'default' : 'outline'}
-                      onClick={() => setInputMode('text')}
-                    >
+                    <Button variant={inputMode === "text" ? "default" : "outline"} onClick={() => setInputMode("text")}>
                       <Keyboard className="mr-2 h-4 w-4" />
                       Type Answer
                     </Button>
-                    <Button
-                      variant={inputMode === 'voice' ? 'default' : 'outline'}
-                      onClick={() => setInputMode('voice')}
-                    >
+                    <Button variant={inputMode === "voice" ? "default" : "outline"} onClick={() => setInputMode("voice")}>
                       <Mic className="mr-2 h-4 w-4" />
                       Voice Answer
                     </Button>
@@ -558,7 +556,7 @@ export default function CompanyRounds() {
                         <CardDescription className="text-base">{question}</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {inputMode === 'text' ? (
+                        {inputMode === "text" ? (
                           <>
                             <Textarea
                               placeholder="Type your answer here..."
@@ -566,23 +564,20 @@ export default function CompanyRounds() {
                               onChange={(e) => setTextAnswers({ ...textAnswers, [index + 100]: e.target.value })}
                               className="min-h-[150px] mb-4"
                             />
-                            <Button onClick={() => handleTextAnswerSubmit(index + 100)}>
-                              Submit for AI Review
-                            </Button>
+                            <Button onClick={() => handleTextAnswerSubmit(index + 100, question)}>Submit for AI Review</Button>
+                            {aiFeedback[index + 100] && (
+                              <div className="mt-4 p-3 bg-green-50 border border-green-300 rounded-md text-green-700 whitespace-pre-line">
+                                🤖 AI Feedback: {aiFeedback[index + 100]}
+                              </div>
+                            )}
                           </>
                         ) : (
                           <div className="text-center py-8">
-                            <Button
-                              size="lg"
-                              onClick={handleVoiceInput}
-                              className={isRecording ? 'bg-red-500 hover:bg-red-600' : ''}
-                            >
+                            <Button size="lg" onClick={() => handleVoiceInput(index + 100)} className={recordingQuestionId === index + 100 ? "bg-red-500 hover:bg-red-600" : ""}>
                               <Mic className="mr-2 h-5 w-5" />
-                              {isRecording ? 'Recording...' : 'Start Recording'}
+                              {recordingQuestionId === index + 100 ? "Recording..." : "Start Recording"}
                             </Button>
-                            <p className="text-sm text-gray-600 mt-4">
-                              Click to record your answer
-                            </p>
+                            <p className="text-sm text-gray-600 mt-4">Click to record your answer</p>
                           </div>
                         )}
                       </CardContent>
