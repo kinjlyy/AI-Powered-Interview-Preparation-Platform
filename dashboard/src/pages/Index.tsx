@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Briefcase, Code, Mic, Video, User, Search } from 'lucide-react';
 
 const companies = [
-  { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+  { id: 'google', name: 'Google', logo: '/images/Google.svg' },
   { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
   { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
   { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },

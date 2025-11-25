@@ -84,7 +84,7 @@ const roleData: Record<string, Role> = {
       { name: 'CSS-Tricks', url: 'https://css-tricks.com/' },
     ],
     hiringCompanies: [
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
       { id: 'netflix', name: 'Netflix', logo: '/images/Netflix.jpg' },
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
@@ -124,7 +124,7 @@ const roleData: Record<string, Role> = {
     hiringCompanies: [
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
       { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'apple', name: 'Apple', logo: '/images/Apple.jpg' },
     ],
   },
@@ -160,7 +160,7 @@ const roleData: Record<string, Role> = {
       { name: 'Web.dev', url: 'https://web.dev/' },
     ],
     hiringCompanies: [
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
       { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
       { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
@@ -199,7 +199,7 @@ const roleData: Record<string, Role> = {
     ],
     hiringCompanies: [
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
       { id: 'netflix', name: 'Netflix', logo: '/images/Netflix.jpg' },
     ],
@@ -236,7 +236,7 @@ const roleData: Record<string, Role> = {
       { name: 'Scikit-learn Documentation', url: 'https://scikit-learn.org/' },
     ],
     hiringCompanies: [
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
       { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
@@ -274,7 +274,7 @@ const roleData: Record<string, Role> = {
       { name: 'Product Coalition', url: 'https://productcoalition.com/' },
     ],
     hiringCompanies: [
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
       { id: 'apple', name: 'Apple', logo: '/images/Apple.jpg' },

@@ -29,7 +29,7 @@ const questions: Question[] = [
     category: 'Array',
     leetcodeLink: 'https://leetcode.com/problems/two-sum/',
     companies: [
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
       { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
     ],
@@ -55,7 +55,7 @@ const questions: Question[] = [
     leetcodeLink: 'https://leetcode.com/problems/longest-substring-without-repeating-characters/',
     companies: [
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
     ],
     topics: ['String', 'Sliding Window'],
@@ -67,7 +67,7 @@ const questions: Question[] = [
     category: 'Array',
     leetcodeLink: 'https://leetcode.com/problems/median-of-two-sorted-arrays/',
     companies: [
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
     ],
     topics: ['Array', 'Binary Search'],
@@ -104,7 +104,7 @@ const questions: Question[] = [
     category: 'Stack',
     leetcodeLink: 'https://leetcode.com/problems/valid-parentheses/',
     companies: [
-      { id: 'google', name: 'Google', logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png' },
+      { id: 'google', name: 'Google', logo: '/images/Google.svg' },
       { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
       { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
     ],

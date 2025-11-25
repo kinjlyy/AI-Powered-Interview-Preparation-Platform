@@ -42,6 +42,13 @@ All shadcn/ui components have been downloaded under `@/components/ui`.
 - The `@/` path alias points to the `src/` directory
 - In your typescript code, don't re-export types that you're already importing
 
+## Company Logos
+
+- Place company logo files under `public/images/`.
+- The app uses these images for company tiles across the dashboard. Example filenames used in the project: `Google.svg`, `Amazon.jpg`, `Meta.jpg`, `Microsoft.jpg`, `Apple.jpg`, `Netflix.jpg`.
+- If you want to add or replace logos, name them as above and they will be picked up automatically.
+- For the `CompanyRounds` component, the fallback logic uses `CompanyName.jpg` for unknown companies and `Google.svg` for Google if present, but adding the correct file avoids any fallback.
+
 # Commands
 
 **Install Dependencies**
