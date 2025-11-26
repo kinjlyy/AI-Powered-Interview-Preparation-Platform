@@ -1,7 +1,31 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { signup } from '../api/auth'
 
 const Signup = () => {
   const navigate = useNavigate()
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    try {
+      const response = await signup(formData)
+      localStorage.setItem('token', response.token)
+      navigate('/')
+    } catch (err) {
+      setError(err.message || 'Signup failed')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleLoginRedirect = () => {
     navigate('/login')
@@ -24,15 +48,19 @@ const Signup = () => {
             Set up your workspace and start practicing smarter.
           </p>
         </div>
-        <form className="mt-10 space-y-6">
+        <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-semibold text-slate-700">
               Full name
             </label>
             <input
               id="name"
+              name="name"
               type="text"
+              value={formData.name}
+              onChange={handleChange}
               placeholder="Alex Doe"
+              required
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
           </div>
@@ -42,8 +70,12 @@ const Signup = () => {
             </label>
             <input
               id="signup-email"
+              name="email"
               type="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="you@example.com"
+              required
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
           </div>
@@ -53,16 +85,22 @@ const Signup = () => {
             </label>
             <input
               id="signup-password"
+              name="password"
               type="password"
+              value={formData.password}
+              onChange={handleChange}
               placeholder="Create a password"
+              required
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
           </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <button
-            type="button"
-            className="w-full rounded-full bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition hover:-translate-y-0.5 hover:bg-brand-500"
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-full bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition hover:-translate-y-0.5 hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Create account
+            {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-500">
