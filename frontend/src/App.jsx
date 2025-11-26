@@ -5,7 +5,7 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
-import { testBackend } from "./api/testBackend";   // <-- add this
+import { testBackend } from "./api/testBackend";
 import './index.css'
 
 const App = () => {

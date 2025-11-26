@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Auth Demo — Login / Sign Up</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="auth-container">
+    <section class="card">
+      <div class="card-left">
+        <h1>Welcome</h1>
+        <p class="lead">Use your email to sign up or log in.</p>
+
+        <div class="tabs" role="tablist" aria-label="Authentication tabs">
+          <button class="tab active" data-target="login-form" aria-selected="true">Login</button>
+          <button class="tab" data-target="signup-form" aria-selected="false">Sign Up</button>
+        </div>
+
+        <!-- Login form (id must remain login-form) -->
+        <form id="login-form" class="auth-form active" autocomplete="on" novalidate>
+          <label>
+            Email
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+
+          <label>
+            Password
+            <input type="password" name="password" placeholder="Enter password" required />
+          </label>
+
+          <button class="btn primary" type="submit">Login</button>
+        </form>
+
+        <!-- Signup form (id must remain signup-form) -->
+        <form id="signup-form" class="auth-form" autocomplete="on" novalidate>
+          <label>
+            Name
+            <input type="text" name="name" placeholder="Jane Doe" required />
+          </label>
+
+          <label>
+            Email
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+
+          <label>
+            Password
+            <input type="password" name="password" placeholder="Create a password" minlength="6" required />
+          </label>
+
+          <button class="btn primary" type="submit">Create account</button>
+        </form>
+
+        <div id="message" role="status" aria-live="polite"></div>
+      </div>
+
+      <aside class="card-right">
+        <h3>Why sign up?</h3>
+        <ul>
+          <li>Access dashboard and personalized settings</li>
+          <li>Secure token-based sessions</li>
+          <li>Works with your existing backend routes</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
+
+
