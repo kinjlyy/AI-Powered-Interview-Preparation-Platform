@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Briefcase, Code, Mic, Video, User, Search } from 'lucide-react';
 
 const companies = [
-  { id: 'google', name: 'Google', logo: '/images/Google.svg' },
+  { id: 'google', name: 'Google', logo: '/images/Google.jpg' },
   { id: 'microsoft', name: 'Microsoft', logo: '/images/Microsoft.jpg' },
   { id: 'amazon', name: 'Amazon', logo: '/images/Amazon.jpg' },
   { id: 'meta', name: 'Meta', logo: '/images/Meta.jpg' },
@@ -144,13 +144,6 @@ export default function Index() {
                         onClick={() => navigate(`/company/${company.id}`)}
                       >
                         Start Practicing
-                      </Button>
-                      <Button 
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-700" 
-                        onClick={() => handleMockInterview(company.id)}
-                      >
-                        <Video className="mr-2 h-4 w-4" />
-                        Mock Interview
                       </Button>
                     </div>
                   </CardContent>
