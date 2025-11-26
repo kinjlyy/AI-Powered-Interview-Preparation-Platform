@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.local
+.env
+*.log
+.DS_Store
+/.idea
+.vscode/*
+.history
+pnpm-lock.yaml
+package-lock.json
+.env.*

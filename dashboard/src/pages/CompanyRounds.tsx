@@ -39,7 +39,7 @@ interface Company {
 const companyData: Record<string, Company> = {
   google: {
     name: 'Google',
-    logo: '/images/Google.svg',
+    logo: 'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png',
     rounds: {
       aptitude: [
         {
@@ -83,7 +83,7 @@ const companyData: Record<string, Company> = {
   },
   microsoft: {
     name: 'Microsoft',
-    logo: '/images/Microsoft.jpg',
+    logo: '/images/photo1763221566.jpg',
     rounds: {
       aptitude: [
         {
@@ -119,90 +119,6 @@ const companyData: Record<string, Company> = {
       ],
     },
   },
-  amazon: {
-    name: 'Amazon',
-    logo: '/images/Amazon.jpg',
-    rounds: {
-      aptitude: [
-        { id: 1, question: 'If a book costs $12 and you buy 5, what is the total cost?', options: ['$60', '$50', '$72', '$48'], correct: 0 },
-        { id: 2, question: 'What is 20% of 250?', options: ['40', '50', '60', '45'], correct: 1 },
-      ],
-      coding: [
-        { id: 1, title: 'Kth Largest Element', difficulty: 'Medium', link: 'https://leetcode.com/problems/kth-largest-element-in-an-array/' },
-        { id: 2, title: 'Product of Array Except Self', difficulty: 'Medium', link: 'https://leetcode.com/problems/product-of-array-except-self/' },
-      ],
-      technical: [
-        'Explain eventual consistency in distributed systems',
-        'How does AWS S3 ensure durability of data?',
-        'Describe CAP theorem',
-      ],
-      hr: [
-        'Tell me about a time you worked under pressure',
-        'How do you prioritize tasks?',
-        'What are your salary expectations?',
-      ],
-    },
-  },
-  meta: {
-    name: 'Meta',
-    logo: '/images/Meta.jpg',
-    rounds: {
-      aptitude: [
-        { id: 1, question: 'If a dataset has 200 elements, what is 10% of it?', options: ['10', '20', '25', '40'], correct: 1 },
-      ],
-      coding: [
-        { id: 1, title: 'Design a News Feed algorithm (system design)', difficulty: 'Hard', link: 'https://leetcode.com/problems/implement-trie-prefix-tree/' },
-      ],
-      technical: [
-        'Explain the difference between GraphQL and REST',
-        'What is the event loop in JavaScript?',
-      ],
-      hr: [
-        'Why do you want to join Meta?',
-        'How do you approach cross-team collaboration?',
-      ],
-    },
-  },
-  apple: {
-    name: 'Apple',
-    logo: '/images/Apple.jpg',
-    rounds: {
-      aptitude: [
-        { id: 1, question: 'If an iPhone battery lasts 10 hours and you use it for 3 hours, how many hours remain?', options: ['7', '6', '8', '5'], correct: 0 },
-      ],
-      coding: [
-        { id: 1, title: 'Design an efficient cache system', difficulty: 'Medium', link: 'https://leetcode.com/problems/lru-cache/' },
-      ],
-      technical: [
-        'How does the MVC pattern differ from MVVM?',
-        'Explain memory management in iOS',
-      ],
-      hr: [
-        'Describe a time you showed ownership',
-        'What is your approach to design decisions?',
-      ],
-    },
-  },
-  netflix: {
-    name: 'Netflix',
-    logo: '/images/Netflix.jpg',
-    rounds: {
-      aptitude: [
-        { id: 1, question: 'If a movie is 2 hours long and starts at 8 PM, when does it end?', options: ['10 PM', '9 PM', '10:30 PM', '11 PM'], correct: 0 },
-      ],
-      coding: [
-        { id: 1, title: 'Design a recommendation system', difficulty: 'Hard', link: 'https://leetcode.com/problems/design-search-autocomplete-system/' },
-      ],
-      technical: [
-        'Explain how CDN improves content delivery',
-        'Describe how you would design a scalable video streaming service',
-      ],
-      hr: [
-        'How do you ensure continuous learning within a team?',
-        'Tell me about a time you received critical feedback',
-      ],
-    },
-  },
   // Add other companies similarly...
 };
 
@@ -226,27 +142,11 @@ export default function CompanyRounds() {
   const [interimTranscripts, setInterimTranscripts] = useState<Record<number, string>>({});
   const recognitionRef = useRef<any | null>(null);
 
-  // Support companies not present in companyData by creating a default/placeholder
-  const company = companyId
-    ? companyData[companyId] || {
-        name: (companyId.charAt(0).toUpperCase() + companyId.slice(1)).replace('-', ' '),
-        // Use a capitalized filename so it matches the images in public/images
-        logo: companyId.toLowerCase() === 'google'
-          ? `/images/${companyId.charAt(0).toUpperCase() + companyId.slice(1)}.svg`
-          : `/images/${companyId.charAt(0).toUpperCase() + companyId.slice(1)}.jpg`,
-        rounds: {
-          aptitude: [],
-          coding: [],
-          technical: [],
-          hr: [],
-        },
-      }
-    : null;
+  const company = companyId ? companyData[companyId] : null;
 
-  // If companyId is missing, navigate back to the index
   useEffect(() => {
-    if (!companyId) navigate('/');
-  }, [companyId, navigate]);
+    if (!company) navigate('/');
+  }, [company, navigate]);
 
   // cleanup on unmount to stop speech recognition if running
   useEffect(() => {
@@ -279,11 +179,12 @@ export default function CompanyRounds() {
       toast.error('Incorrect answer. Check the correct answer below.');
     }
   };
+  // /src/CompanyRounds.tsx (or wherever your component is)
 
-  const evaluateWithAI = async (questionText: string, userAnswer: string) => {
-  const key = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!key) {
-    throw new Error("Missing Gemini API Key in env");
+const evaluateWithAI = async (questionText: string, userAnswer: string) => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    return "AI evaluation failed: VITE_GEMINI_API_KEY missing in environment variables.";
   }
   if (!questionText || !userAnswer) {
     return "Please provide a valid question and answer.";
@@ -301,53 +202,57 @@ Provide:
 2. Strengths
 3. Improvements
 4. Verdict (Good / Average / Weak)
-5. provide sample answer for reference
-remove stars before answering
+5. Sample answer
+Remove stars before answering
 `;
 
-    const modelName = "gemini-2.5-flash";  // Use a valid Gemini model
-    const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+    const body = {
+      contents: [
+        {
+          parts: [
+            { text: prompt }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        candidateCount: 1
+      }
+    };
 
-    // Support either API key query param or Bearer token in Authorization header.
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    let fetchUrl = baseUrl;
-    if (typeof key === 'string' && key.startsWith('AIza')) {
-      fetchUrl = `${baseUrl}?key=${key}`;
-    } else {
-      headers['Authorization'] = `Bearer ${key}`;
-    }
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      }
+    );
 
-    const res = await fetch(fetchUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new Error(text || `AI request failed with status ${res.status}`);
-    }
     const data = await res.json();
-
-    // Debug: log full response
-    console.log("Gemini API response:", data);
-
-    // Extract text
-    const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (aiText && aiText.trim() !== "") {
-      return aiText;
-    } else {
-      // Retry once or return fallback
-      return `AI responded but result was empty. Please try again.`;
+    
+    if (!res.ok) {
+      console.error("GenerateContent API error:", data);
+      // Try to extract an error message from the response body
+      const errorMessage = data?.error?.message || JSON.stringify(data);
+      throw new Error(`API Request Failed: ${errorMessage}`);
     }
-  } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    return `AI evaluation failed.`;
+
+    // Safely extract the generated text from the successful response
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 
+                 "AI returned an empty response. Check API usage.";
+
+    return text;
+
+  } catch (err: any) {
+    console.error("Error calling Gemini API:", err);
+    return `AI evaluation failed: ${err.message}`;
   }
 };
 
+// ... rest of your component code
 
   const getQuestionTextById = (round: string | null, questionId: number) => {
     if (!round) return '';
