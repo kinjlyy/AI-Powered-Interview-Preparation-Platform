@@ -532,5 +532,5 @@ export default function MockInterview() {
   );
 }
 
-// Missing import
-import { CheckCircle2 } from 'lucide-react';
+// // Missing import
+// import { CheckCircle2 } from 'lucide-react';
