@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/api/auth";
+// Default backend for local development — set to 4000 which is the backend's default in this repo.
+const API_URL = "http://localhost:4000/api/auth";
 
 async function handleResponse(response) {
   if (!response.ok) {

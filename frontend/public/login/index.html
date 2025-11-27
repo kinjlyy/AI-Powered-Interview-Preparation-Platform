@@ -54,6 +54,10 @@
         </form>
 
         <div id="message" role="status" aria-live="polite"></div>
+        <pre id="debug-info" style="margin-top: 10px; padding: 8px; background:#f7f7f7; border-radius:4px; font-size:12px; color:#333; display:none;"></pre>
+        <div style="margin-top:8px; display:none;" id="debug-actions">
+          <a id="debug-open-dashboard" href="#" target="_blank" class="btn outline">Open Dashboard</a>
+        </div>
       </div>
 
       <aside class="card-right">
@@ -67,7 +71,28 @@
     </section>
   </main>
 
+  <script>
+    window.__env = window.__env || {};
+    if (!window.__env.REDIRECT_AFTER_LOGIN) window.__env.REDIRECT_AFTER_LOGIN = 'http://localhost:5173/';
+  </script>
   <script src="./script.js"></script>
+  <script>
+    const debugArea = document.getElementById('debug-info');
+    window.addEventListener('loginDebug', (e) => {
+      if (!debugArea) return;
+      debugArea.style.display = 'block';
+      debugArea.textContent = e.detail;
+      const openBtn = document.getElementById('debug-open-dashboard');
+      const debugActions = document.getElementById('debug-actions');
+      if (openBtn && debugActions) {
+        debugActions.style.display = 'block';
+        const redirect = e.detail.split('\n').find(line => line.startsWith('Redirect='))?.split('=')[1] || undefined;
+        if (redirect) {
+          openBtn.href = redirect;
+        }
+      }
+    });
+  </script>
 </body>
 </html>
 
