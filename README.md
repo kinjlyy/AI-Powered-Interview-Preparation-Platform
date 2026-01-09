@@ -45,6 +45,15 @@ Passwords are hashed with `bcrypt` before being stored in MongoDB Atlas.
 
 ### Connecting Frontend & Backend
 
-Ensure the backend is running on `http://localhost:4000`, then interact with the frontend form; it will hit the required endpoints automatically.
+Ensure the backend is running on `http://localhost:4000` for local development, then interact with the frontend form; it will hit the required endpoints automatically.
+
+For production deployments (for example, when hosting the frontend on Vercel and your backend on Render), set the following environment variables in your hosting provider so the built frontend points to your deployed backend:
+
+```
+VITE_API_URL=https://ai-powered-interview-preparation.onrender.com
+VITE_API_BASE=https://ai-powered-interview-preparation.onrender.com/api/auth
+```
+
+Note: the static login HTML reads `window.__env.VITE_API_BASE` at runtime — if you serve the login HTML directly (not via a Vite build), ensure `window.__env.VITE_API_BASE` is set at runtime as well.
 
 
