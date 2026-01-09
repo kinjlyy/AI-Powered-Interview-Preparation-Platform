@@ -87,11 +87,8 @@ if (loginForm) {
         // Allow specifying a target round, default to 'technical' so we land inside the round.
           // Default redirect strategy (priority):
           // 1) runtime override via window.__env__.REDIRECT_AFTER_LOGIN
-          // 2) if login page is hosted on a server, redirect to that origin root (window.location.origin+'/')
-          // 3) fallback to http://localhost:5173/
-          const REDIRECT_AFTER_LOGIN = (window?.__env?.REDIRECT_AFTER_LOGIN)
-            || (window.location?.origin ? `${window.location.origin}/` : null)
-            || 'http://localhost:5173/';
+          // 2) fallback to the dashboard CompanyRounds URL
+          const REDIRECT_AFTER_LOGIN = (window?.__env?.REDIRECT_AFTER_LOGIN) || 'http://localhost:5173/company/google';
         // If this page is rendered within an iframe (the SPA uses an iframe to display this login page),
         // we should redirect the top-level window to the dashboard (not only the iframe itself).
         try {

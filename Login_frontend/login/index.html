@@ -72,9 +72,9 @@
   </main>
 
   <script>
-    // Dev convenience: default the parent redirect to dashboard root if not set by environment.
+    // Dev convenience: default the parent redirect to the dashboard CompanyRounds route if not set.
     window.__env = window.__env || {};
-    if (!window.__env.REDIRECT_AFTER_LOGIN) window.__env.REDIRECT_AFTER_LOGIN = 'http://localhost:5173/';
+    if (!window.__env.REDIRECT_AFTER_LOGIN) window.__env.REDIRECT_AFTER_LOGIN = 'http://localhost:5173/company/google';
   </script>
   <script src="./script.js"></script>
   <script>

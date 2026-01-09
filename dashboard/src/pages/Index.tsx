@@ -34,7 +34,17 @@ export default function Index() {
   );
 
   const handleMockInterview = (companyId: string) => {
-    navigate(`/mock-interview?company=${companyId}`);
+    console.debug('Start Practicing clicked for company:', companyId);
+    // For local development, allow optional environment override for the dashboard base URL
+    const dashboardBase = import.meta.env.VITE_DASHBOARD_URL || 'http://localhost:5173';
+    const target = `${dashboardBase}/company/${companyId}`;
+    // If we're already on the dashboard app, prefer client-side navigation for a smoother UX
+    if (window.location.origin === new URL(dashboardBase).origin) {
+      navigate(`/company/${companyId}`);
+    } else {
+      // Otherwise navigate to the dashboard directly
+      window.location.href = target;
+    }
   };
 
   return (
@@ -141,7 +151,7 @@ export default function Index() {
                       <Button 
                         className="flex-1" 
                         variant="outline"
-                        onClick={() => navigate(`/company/${company.id}`)}
+                        onClick={() => handleMockInterview(company.id)}
                       >
                         Start Practicing
                       </Button>

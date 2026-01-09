@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useParams, useNavigate } from 'react-router-dom';
-import companyData from '@/data/companyData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -38,7 +37,91 @@ interface Company {
   rounds: CompanyRoundsData;
 }
 
-// Company data is centralized in `dashboard/src/data/companyData.ts` and imported.
+const companyData: Record<string, Company> = {
+  google: {
+    name: 'Google',
+    logo: '\images\Google.jpg',
+    rounds: {
+      aptitude: [
+        {
+          id: 1,
+          question: 'If a car travels 60 km in 1 hour, how far will it travel in 2.5 hours at the same speed?',
+          options: ['120 km', '150 km', '180 km', '200 km'],
+          correct: 1,
+        },
+        {
+          id: 2,
+          question: 'What is 15% of 200?',
+          options: ['25', '30', '35', '40'],
+          correct: 1,
+        },
+      ],
+      coding: [
+        {
+          id: 1,
+          title: 'Two Sum',
+          difficulty: 'Easy',
+          link: 'https://leetcode.com/problems/two-sum/',
+        },
+        {
+          id: 2,
+          title: 'Longest Substring Without Repeating Characters',
+          difficulty: 'Medium',
+          link: 'https://leetcode.com/problems/longest-substring-without-repeating-characters/',
+        },
+      ],
+      technical: [
+        'Explain the difference between HTTP and HTTPS',
+        'What is the time complexity of binary search?',
+        'Describe the concept of closures in JavaScript',
+      ],
+      hr: [
+        'Tell me about yourself',
+        'Why do you want to work at Google?',
+        'Describe a challenging project you worked on',
+      ],
+    },
+  },
+  microsoft: {
+    name: 'Microsoft',
+    logo: '/images/photo1763221566.jpg',
+    rounds: {
+      aptitude: [
+        {
+          id: 1,
+          question: 'A train travels at 80 km/h. How long will it take to cover 240 km?',
+          options: ['2 hours', '3 hours', '4 hours', '5 hours'],
+          correct: 1,
+        },
+      ],
+      coding: [
+        {
+          id: 1,
+          title: 'Reverse Linked List',
+          difficulty: 'Easy',
+          link: 'https://leetcode.com/problems/reverse-linked-list/',
+        },
+        {
+          id: 2,
+          title: 'Merge Intervals',
+          difficulty: 'Medium',
+          link: 'https://leetcode.com/problems/merge-intervals/',
+        },
+      ],
+      technical: [
+        'Explain the SOLID principles',
+        'What is dependency injection?',
+        'Describe the difference between SQL and NoSQL databases',
+      ],
+      hr: [
+        'What are your strengths and weaknesses?',
+        'Where do you see yourself in 5 years?',
+        'How do you handle conflicts in a team?',
+      ],
+    },
+  },
+  // Add other companies similarly...
+};
 
 export default function CompanyRounds() {
   const { companyId } = useParams();
@@ -61,12 +144,15 @@ export default function CompanyRounds() {
   const [interimTranscripts, setInterimTranscripts] = useState<Record<number, string>>({});
   const recognitionRef = useRef<any | null>(null);
 
-  const company = companyId ? companyData[companyId] : null;
+  const companyKey = companyId?.toString().toLowerCase().trim() || '';
+  const company = companyKey ? companyData[companyKey] : null;
 
   useEffect(() => {
+    console.debug('CompanyRounds: mounted with companyId:', companyId, 'companyKey:', companyKey, 'companyExists:', !!company);
     if (!company) {
       console.warn('CompanyRounds: unknown companyId', companyId);
       navigate('/');
+      return;
     }
 
     // Check url for `?round=technical` or similar and auto-select the round

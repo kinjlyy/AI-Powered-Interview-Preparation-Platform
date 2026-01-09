@@ -103,9 +103,7 @@ if (loginForm) {
 
             // Redirect the parent SPA to dashboard home (companies list) instead of a specific company round.
             setTimeout(() => {
-              const target = (window?.__env?.REDIRECT_AFTER_LOGIN)
-                || (window.location?.origin ? `${window.location.origin}/` : null)
-                || 'http://localhost:5173/';
+              const target = (window?.__env?.REDIRECT_AFTER_LOGIN) || 'http://localhost:5173/company/google';
         // Try to notify parent frame and then navigate
         try { document.dispatchEvent(new CustomEvent('loginDebug', { detail: `API_BASE=${API_BASE}\nRedirect=${target}` })); } catch (e) {}
         try { window.parent.postMessage({ type: 'LOGIN_REDIRECT', url: target }, '*'); } catch (e) {}
