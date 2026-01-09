@@ -83,31 +83,32 @@ if (loginForm) {
       // adjust redirect path as needed for your app
       setTimeout(() => {
         // Allow runtime configuration of redirect: priority is window.__env__ -> VITE_REDIRECT_AFTER_LOGIN -> fallback '/'
-        // Local dev default: Vite dashboard at 5173 with the CompanyRounds route
-        // Allow specifying a target round, default to 'technical' so we land inside the round.
+        // Local dev default: prefer a relative dashboard path so SPA can navigate client-side
+        // Allow specifying a target round, default to '/company/google' so we land inside the round.
           // Default redirect strategy (priority):
           // 1) runtime override via window.__env__.REDIRECT_AFTER_LOGIN
-          // 2) fallback to the dashboard CompanyRounds URL
-          const REDIRECT_AFTER_LOGIN = (window?.__env?.REDIRECT_AFTER_LOGIN) || 'http://localhost:5173/company/google';
+          // 2) fallback to the dashboard CompanyRounds URL (relative)
+          const REDIRECT_AFTER_LOGIN = (window?.__env?.REDIRECT_AFTER_LOGIN) || '/company/google';
+          const resolvedTarget = (typeof REDIRECT_AFTER_LOGIN === 'string' && REDIRECT_AFTER_LOGIN.startsWith('http')) ? REDIRECT_AFTER_LOGIN : (REDIRECT_AFTER_LOGIN.startsWith('/') ? REDIRECT_AFTER_LOGIN : `/${REDIRECT_AFTER_LOGIN}`);
         // If this page is rendered within an iframe (the SPA uses an iframe to display this login page),
         // we should redirect the top-level window to the dashboard (not only the iframe itself).
         try {
           // Post message instructing the parent frame to navigate (works even if top redirect is prevented)
           try {
-            window.parent.postMessage({ type: 'LOGIN_REDIRECT', url: REDIRECT_AFTER_LOGIN }, '*');
+            window.parent.postMessage({ type: 'LOGIN_REDIRECT', url: resolvedTarget }, '*');
           } catch (e) {
             // ignore
           }
           // Dispatch debug showing the redirect url (so the debug area can show it)
-          try { document.dispatchEvent(new CustomEvent('loginDebug', { detail: `API_BASE=${API_BASE}\nRedirect=${REDIRECT_AFTER_LOGIN}` })); } catch (e) {}
+          try { document.dispatchEvent(new CustomEvent('loginDebug', { detail: `API_BASE=${API_BASE}\nRedirect=${resolvedTarget}` })); } catch (e) {}
           if (window.top && window.top !== window.self) {
-            window.top.location.href = REDIRECT_AFTER_LOGIN;
+            window.top.location.href = resolvedTarget;
           } else {
-            window.location.href = REDIRECT_AFTER_LOGIN;
+            window.location.href = resolvedTarget;
           }
         } catch (e) {
           // If cross-origin or any error prevents placing location on top, fallback to normal navigation
-          window.location.href = REDIRECT_AFTER_LOGIN;
+          window.location.href = resolvedTarget;
         }
       }, 700);
     } catch (err) {
