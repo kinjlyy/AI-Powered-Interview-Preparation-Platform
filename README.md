@@ -54,6 +54,6 @@ VITE_API_URL=https://ai-powered-interview-preparation.onrender.com
 VITE_API_BASE=https://ai-powered-interview-preparation.onrender.com/api/auth
 ```
 
-Note: the static login HTML reads `window.__env.VITE_API_BASE` at runtime — if you serve the login HTML directly (not via a Vite build), ensure `window.__env.VITE_API_BASE` is set at runtime as well.
+
 
 
